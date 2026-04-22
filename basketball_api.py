@@ -441,10 +441,6 @@ def get_fixtures_by_date(date_str):
     if not all_results:
         return []
 
-    # Türkiye günü sınırları (UTC+1 offset uygulandıktan sonra)
-    tr_start = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-    tr_end   = tr_start + datetime.timedelta(hours=24)
-
     matches = []
     seen    = set()
 
@@ -461,17 +457,17 @@ def get_fixtures_by_date(date_str):
             if not raw_date:
                 raw_date = date_str
 
+            # Direkt API tarihine göre filtrele (önceki gün ve sonraki gün de çekildiği için)
+            if raw_date != date_str:
+                continue
+
             try:
                 api_dt = datetime.datetime.strptime(f"{raw_date} {raw_time}", "%Y-%m-%d %H:%M")
             except ValueError:
                 api_dt = datetime.datetime.strptime(f"{raw_date} 00:00", "%Y-%m-%d %H:%M")
 
-            # UTC+1 offset uygula → Türkiye saati
+            # UTC+1 offset uygula → Türkiye saati gösterimi için
             tr_dt = api_dt + datetime.timedelta(hours=TZ_OFFSET)
-
-            # Türkiye gününe ait mi kontrol et
-            if not (tr_start <= tr_dt < tr_end):
-                continue
 
             seen.add(mid)
 
